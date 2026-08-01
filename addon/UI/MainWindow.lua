@@ -9,9 +9,6 @@ local UI = ns.UI
 local MODULES = {
   { key = "dashboard", labelKey = "DASHBOARD", width = 100 },
   { key = "roster", labelKey = "ROSTER", width = 80 },
-  { key = "tank", labelKey = "TANKS", width = 64 },
-  { key = "healer", labelKey = "HEALERS", width = 72 },
-  { key = "dps", labelKey = "DPS", width = 56 },
   { key = "builder", labelKey = "BUILDER", width = 110 },
   { key = "notes", labelKey = "NOTES", width = 100 },
   { key = "absences", labelKey = "ABSENCES", width = 80 },
@@ -115,7 +112,7 @@ function UI:EnsureCreated()
   f.moduleButtons = {}
   local mx, my = 8, -4
   for i, m in ipairs(MODULES) do
-    if i == 7 then
+    if i == 4 then
       mx, my = 8, -34
     end
     -- Capture module key safely for Lua 5.1 closures

@@ -23,13 +23,13 @@ function ns.BuildDashboard(parent)
       ns.OpenRosterFiltered({ module = "roster" })
     end },
     { key = "tank", label = L["TANKS"], color = C.tank, click = function()
-      ns.OpenRosterFiltered({ role = "tank", module = "tank" })
+      ns.OpenRosterFiltered({ role = "tank", module = "roster" })
     end },
     { key = "healer", label = L["HEALERS"], color = C.healer, click = function()
-      ns.OpenRosterFiltered({ role = "healer", module = "healer" })
+      ns.OpenRosterFiltered({ role = "healer", module = "roster" })
     end },
     { key = "dps", label = L["DPS"], color = C.dps, click = function()
-      ns.OpenRosterFiltered({ role = "dps", module = "dps" })
+      ns.OpenRosterFiltered({ role = "dps", module = "roster" })
     end },
     { key = "dayone", label = L["DAY_ONE"], color = C.ok, click = function()
       if ns.UI then
