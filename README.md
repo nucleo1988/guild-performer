@@ -52,11 +52,15 @@ Shared format docs: [`web/shared/FORMAT.md`](web/shared/FORMAT.md)
 | `/gp reset` | Reset window position |
 | `/gp sync` | Apply `GuildPerformer_Data.lua` from the desktop syncer |
 
-## Automated roster sync
+## Automated roster sync (Windows app)
 
-1. RaidRoster guild Config → generate **export token URL** (per guild).
-2. Configure and schedule [`syncer/Sync-GuildPerformer.ps1`](syncer/Sync-GuildPerformer.ps1).
+For non-technical officers, use the **Guild Performer Sync** installer from [Releases](https://github.com/nucleo1988/guild-performer/releases):
+
+1. RaidRoster guild Config → generate **export token URL** (per guild) → Copy URL.
+2. Install/open **Guild Performer Sync** → Paste URL → Find addon folder → **Sync now**.
 3. In-game `/reload` or `/gp sync`.
+
+Details: [`syncer/README.md`](syncer/README.md). Advanced users can still use `syncer/Sync-GuildPerformer.ps1`.
 
 Roster data is **never** bundled in CurseForge zips; only addon code is released.
 

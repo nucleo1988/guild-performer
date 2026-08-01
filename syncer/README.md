@@ -1,36 +1,40 @@
-# Guild Performer Syncer
+# Guild Performer Sync
 
-WoW Lua **cannot** download from the internet. This small Windows script pulls your **guild-scoped** export URL from RaidRoster and writes `GuildPerformer_Data.lua` into the addon folder. After `/reload`, Guild Performer applies the roster.
+App Windows per aggiornare il roster **senza PowerShell**. Pensata per officer non tecnici.
 
-## Setup (per guild / per PC)
+## Per la gilda (utenti)
 
-1. On RaidRoster → guild **Config** → Guild Performer · Sync Sheet  
-   - Paste the Google Sheet URL, enable sync, **Sync now**  
-   - **Generate / rotate token** → **Copy URL** (shown once)
-2. Copy `config.example.json` → `config.json`
-3. Set:
-   - `url`: the copied export URL  
-   - `addonPath`: your retail AddOns `GuildPerformer` folder  
-4. Run once:
-   ```powershell
-   cd syncer
-   powershell -ExecutionPolicy Bypass -File .\Sync-GuildPerformer.ps1
-   ```
-5. In game: `/reload` or `/gp sync`
+1. Scarica **`GuildPerformerSync-Setup-*.exe`** dalla [Release](https://github.com/nucleo1988/guild-performer/releases) (oppure `GuildPerformerSync.exe` portable).
+2. Installa e apri **Guild Performer Sync**.
+3. Sul sito RaidRoster → pannello gilda → **Config** → genera token → **Copia URL**.
+4. Nell’app: **Incolla** l’URL → **Trova** (cartella addon) → **Sincronizza ora**.
+5. In gioco: `/reload` oppure `/gp sync`.
 
-## Task Scheduler (every 30 minutes)
+Opzionale: attiva *Sincronizza automaticamente* e *Avvia con Windows*.
 
-1. Open Task Scheduler → Create Basic Task  
-2. Trigger: Daily, repeat every 30 minutes for 1 day (or forever)  
-3. Action: Start a program  
-   - Program: `powershell.exe`  
-   - Arguments: `-NoProfile -ExecutionPolicy Bypass -File "C:\path\to\guild-performer\syncer\Sync-GuildPerformer.ps1"`  
-4. Keep WoW closed or accept that the file updates on disk until the next `/reload`
+> Ogni gilda ha il **proprio** URL. Non condividere quello di un’altra gilda.
 
-## Multi-guild
+## Sviluppatori — build locale
 
-Each guild has its **own** token URL. Use a separate `config.json` (or `-ConfigPath`) per guild/PC. Never share another guild’s URL.
+```powershell
+cd syncer\app
+powershell -ExecutionPolicy Bypass -File .\build.ps1
+```
 
-## Security
+Output:
 
-The URL is a secret: anyone with it can download the roster (including officer notes). Rotate the token on the site if it leaks.
+- `syncer/app/dist/GuildPerformerSync.exe` — portable  
+- `syncer/dist-installer/GuildPerformerSync-Setup-1.1.0.exe` — installer (richiede [Inno Setup 6](https://jrsoftware.org/isinfo.php))
+
+## CLI (dopo installazione)
+
+```text
+GuildPerformerSync.exe --sync
+GuildPerformerSync.exe --sync --force
+```
+
+Config salvata in `%APPDATA%\GuildPerformerSync\config.json`.
+
+## Script PowerShell (avanzato)
+
+`Sync-GuildPerformer.ps1` resta disponibile per automazioni headless; l’app GUI è il percorso consigliato.

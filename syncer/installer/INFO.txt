@@ -1,0 +1,18 @@
+Guild Performer Sync
+====================
+
+Questo programma aggiorna il roster dell'addon Guild Performer
+scaricando i dati dal sito RaidRoster della TUA gilda.
+
+Cosa ti serve prima:
+1. Addon Guild Performer installato in World of Warcraft
+2. Sul sito RaidRoster: pannello gilda → Config →
+   "Genera / ruota token" → "Copia URL"
+
+Poi in questa app:
+1. Incolla l'URL
+2. Controlla che la cartella addon sia corretta (usa «Trova»)
+3. Premi «Sincronizza ora»
+4. In gioco: /reload  oppure  /gp sync
+
+Ogni gilda ha il proprio URL: non condividere quello di un'altra gilda.

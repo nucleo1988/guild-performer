@@ -8,5 +8,10 @@ Thumbs.db
 *.lua.bak
 syncer/config.json
 syncer/.last-etag
+syncer/app/build/
+syncer/app/dist/
+syncer/dist-installer/
+syncer/app/*.pyc
+syncer/app/__pycache__/
 # Local roster dumps (never commit real guild data)
 addon/GuildPerformer_Data.local.lua

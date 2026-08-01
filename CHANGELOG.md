@@ -4,6 +4,13 @@ All notable changes to Guild Performer will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-08-01
+
+### Added
+
+- **Guild Performer Sync** Windows GUI + Setup installer (`syncer/app`, `syncer/installer`) for non-technical officers.
+- GitHub Action `build-syncer.yml` attaches Setup.exe to releases.
+
 ## [1.1.0] - 2026-08-01
 
 ### Added
