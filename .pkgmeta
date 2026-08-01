@@ -1,0 +1,19 @@
+package-as: GuildPerformer
+manual-changelog: CHANGELOG.md
+enable-nolib-creation: no
+
+move-folders:
+  addon: GuildPerformer
+
+ignore:
+  - web
+  - scripts
+  - syncer
+  - docs
+  - .github
+  - CONTRIBUTING.md
+  - README.md
+  - LICENSE
+  - "*.md"
+  - .gitignore
+  - .gitattributes

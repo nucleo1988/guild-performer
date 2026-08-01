@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y lua5.1 zip rsync
+
+      - name: Resolve version & channel
+        id: meta
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          CHANNEL=release
+          case "$TAG" in
+            *alpha*) CHANNEL=alpha ;;
+            *beta*) CHANNEL=beta ;;
+          esac
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+
+      - name: Sync Interface version into TOC
+        run: |
+          IFACE="$(tr -d '[:space:]' < addon/Interface.version)"
+          sed -i "s/^## Interface:.*/## Interface: ${IFACE}/" addon/GuildPerformer.toc
+
+      - name: Validate
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/validate-release.sh
+
+      - name: Package zip
+        run: ./scripts/package-addon.sh "${{ steps.meta.outputs.version }}"
+
+      - name: Release notes
+        run: |
+          {
+            echo "## Guild Performer ${{ steps.meta.outputs.version }}"
+            echo
+            echo "Channel: **${{ steps.meta.outputs.channel }}**"
+            echo
+            head -n 60 CHANGELOG.md
+          } > release-notes.md
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: Guild Performer ${{ steps.meta.outputs.version }}
+          body_path: release-notes.md
+          files: dist/GuildPerformer-${{ steps.meta.outputs.version }}.zip
+          prerelease: ${{ steps.meta.outputs.channel != 'release' }}
+
+      - name: Publish to CurseForge via BigWigs Packager
+        continue-on-error: true
+        uses: BigWigsMods/packager@v2
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        with:
+          args: -g curseforge -n ${{ steps.meta.outputs.version }}

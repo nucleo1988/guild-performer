@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a bug in Guild Performer
+labels: [bug]
+body:
+  - type: textarea
+    id: describe
+    attributes:
+      label: Description
+      description: What went wrong?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Addon version
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: wow
+    attributes:
+      label: WoW client / Interface
+      placeholder: Retail / 120007
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+  - type: textarea
+    id: export
+    attributes:
+      label: Export format version / sample (redact names if needed)

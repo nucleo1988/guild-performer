@@ -1,0 +1,12 @@
+dist/
+*.zip
+.DS_Store
+Thumbs.db
+*.wago
+.idea/
+.vscode/
+*.lua.bak
+syncer/config.json
+syncer/.last-etag
+# Local roster dumps (never commit real guild data)
+addon/GuildPerformer_Data.local.lua

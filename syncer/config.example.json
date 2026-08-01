@@ -1,0 +1,5 @@
+{
+  "url": "https://your-domain.example/api/v1/gp/roster/gp_YOUR_TOKEN_HERE",
+  "addonPath": "C:/Program Files (x86)/World of Warcraft/_retail_/Interface/AddOns/GuildPerformer",
+  "format": "lua"
+}

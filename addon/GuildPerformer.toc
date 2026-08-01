@@ -1,0 +1,30 @@
+## Interface: 120007
+## Title: |cff66ccffGuild|r|cff88aaffPerformer|r
+## Notes: Import and review guild raid roster data from RaidRoster / Guild Performer web export.
+## Notes-itIT: Importa e consulta i dati del roster raid dalla pagina web Guild Performer.
+## Author: nucleo1988
+## Version: @project-version@
+## SavedVariables: GuildPerformerDB
+## X-Curse-Project-ID: 1635122
+## X-Website: https://github.com/nucleo1988/guild-performer
+## X-Category: Raid
+## IconTexture: Interface\Icons\INV_Misc_GroupLooking
+
+Locales\enUS.lua
+Locales\itIT.lua
+ExportFormat.lua
+Theme.lua
+Database.lua
+Import.lua
+SyncData.lua
+GuildPerformer_Data.lua
+GroupBuilder.lua
+Roster.lua
+Widgets.lua
+Core.lua
+Minimap.lua
+UI\MainWindow.lua
+UI\Dashboard.lua
+UI\RosterView.lua
+UI\ImportView.lua
+UI\Settings.lua

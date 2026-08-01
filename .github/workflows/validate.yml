@@ -1,0 +1,29 @@
+name: Validate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lua
+        run: sudo apt-get update && sudo apt-get install -y lua5.1
+
+      - name: Validate addon package
+        run: |
+          chmod +x scripts/validate-release.sh scripts/package-addon.sh
+          ./scripts/validate-release.sh
+
+      - name: Dry-run package
+        run: ./scripts/package-addon.sh 0.0.0-ci
+
+      - name: Assert zip structure
+        run: |
+          unzip -l dist/GuildPerformer-0.0.0-ci.zip | grep -q 'GuildPerformer/GuildPerformer.toc'
+          unzip -l dist/GuildPerformer-0.0.0-ci.zip | grep -vq 'web/'
+          unzip -l dist/GuildPerformer-0.0.0-ci.zip | grep -vq '.github/'
