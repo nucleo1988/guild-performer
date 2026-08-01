@@ -1,6 +1,6 @@
 ; Inno Setup script — build after PyInstaller produces dist\GuildPerformerSync.exe
 #define MyAppName "Guild Performer Sync"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.1.1"
 #define MyAppPublisher "nucleo1988"
 #define MyAppURL "https://github.com/nucleo1988/guild-performer"
 #define MyAppExeName "GuildPerformerSync.exe"
