@@ -164,7 +164,8 @@ function UI:ShowModule(key)
     ns.rosterAbsencesOnly = true
     pageKey = "roster"
   elseif key == "roster" then
-    if not ns.pendingLaunchFilter then
+    -- Keep filters set by OpenRosterFiltered / dashboard cards.
+    if not ns.pendingLaunchFilter and not ns.rosterRolePreset and not ns.rosterCriticalOnly and not ns.rosterAbsencesOnly then
       ns.rosterViewMode = "all"
       ns.rosterRolePreset = nil
       ns.rosterCriticalOnly = nil
