@@ -15,7 +15,8 @@ _Place screenshots here:_
 ## Features
 
 - Paste-string import (`GPv1;…`) from the RaidRoster **Export Guild Performer** tool
-- Desktop **syncer** for automatic roster updates without a new CurseForge release ([`syncer/README.md`](syncer/README.md))
+- **RaidRoster Companion** / desktop **syncer** for roster pull/push without a new CurseForge release
+- Guild tab (ilvl / roles / Raider.IO), Events calendar, roster tools
 - Dashboard with role counts, Day One / deferred launch, critical notes
 - Filterable roster (role, class, status, search) with class colors
 - Group builder with suggestions, utility gaps, and saved templates
@@ -75,9 +76,11 @@ Roster data is **never** bundled in CurseForge zips; only addon code is released
 ```text
 guild-performer/
 ├── addon/                 # WoW addon sources (packaged as GuildPerformer/)
+├── tools/release/         # Class Performer–style CurseForge upload (Python)
 ├── web/shared/            # Shared format documentation
 ├── scripts/               # Package + validate helpers
 ├── .github/workflows/     # CI validate + CurseForge release
+├── release.bat            # Windows shortcut → tools/release/release.py
 ├── CHANGELOG.md
 ├── README.md
 ├── LICENSE
@@ -109,14 +112,30 @@ Checks TOC, Interface version, and required Lua modules.
 
 ## Release & CurseForge
 
-1. Add GitHub secret **`CF_API_TOKEN`** (CurseForge API token).
-2. Push a version tag:
-   - `v1.0.0` → release
-   - `v1.0.0-beta.1` → beta
-   - `v1.0.0-alpha.1` → alpha
-3. Workflow `.github/workflows/release.yml` validates, packages, creates a GitHub Release, and uploads to CurseForge project `1635122`.
+Same author Upload API flow as **Class Performer** (`performer/scraper/release.py`).
 
-Never commit tokens. Packager uses BigWigs Mods packager where available, with a fallback zip script.
+### Local (recommended)
+
+1. Copy `tools/release/release.env.example` → `tools/release/release.env`
+2. Set `CF_API_TOKEN` (from [authors.curseforge.com](https://authors.curseforge.com/)) and `CF_PROJECT_ID=1635122`
+3. Run:
+
+```bash
+cd tools/release
+pip install -r requirements.txt
+python release.py --version 1.3.0          # package + upload
+python release.py --version 1.3.0 --dry-run
+# or from repo root:
+release.bat --version 1.3.0
+```
+
+### GitHub Actions (tag)
+
+1. Add GitHub secret **`CF_API_TOKEN`**.
+2. Push a version tag (`v1.3.0`, `v1.3.0-beta.1`, …).
+3. Workflow `.github/workflows/release.yml` validates, creates a GitHub Release, and uploads via the same Python CurseForge client (project `1635122`).
+
+Never commit `release.env` / tokens. Roster dumps are never packaged.
 
 ## Versioning
 

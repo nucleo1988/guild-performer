@@ -52,6 +52,9 @@ local function parsePlayerRow(row, sep)
     if nr then offNorm[#offNorm + 1] = nr end
   end
 
+  local prio = tonumber(f[15])
+  if prio and (prio < 1 or prio > 5) then prio = nil end
+
   local player = {
     name = ns.UnescapeField(f[1] or ""),
     primaryRole = primary,
@@ -67,6 +70,7 @@ local function parsePlayerRow(row, sep)
     mythic = (mythic == "" and nil) or (mythic == "1") or (mythic == "0" and false) or nil,
     tags = csv(f[13]),
     notes = ns.UnescapeField(f[14] or ""),
+    priority = prio,
   }
   if player.name == "" then return nil, "missing name" end
   if #player.offRoles == 0 then player.offRoles = { player.primaryRole } end
@@ -80,11 +84,12 @@ function ns.ParseExportString(raw)
   -- Allow multiline paste: collapse newlines outside notes by treating as continuous string
   raw = raw:gsub("\r\n", ""):gsub("\n", ""):gsub("\r", "")
 
-  if not raw:match("^GPv1;") then
+  local prefix = raw:match("^(GPv%d+);")
+  if not prefix or (prefix ~= "GPv1" and prefix ~= "GPv2") then
     return nil, L["INVALID_FORMAT"]
   end
 
-  local rest = raw:sub(6) -- after GPv1;
+  local rest = raw:sub(#prefix + 2) -- after GPvN;
   local playersMarker = rest:find(";PLAYERS;", 1, true)
   if not playersMarker then
     return nil, L["INVALID_FORMAT"]
@@ -93,7 +98,7 @@ function ns.ParseExportString(raw)
   local header = rest:sub(1, playersMarker - 1)
   local body = rest:sub(playersMarker + 9)
   local meta = ns.ParseHeader(header)
-  local fv = tonumber(meta.fv or "1") or 1
+  local fv = tonumber(meta.fv or (prefix == "GPv2" and "2" or "1")) or 1
   if fv > ns.FORMAT_VERSION then
     return nil, string.format(L["VERSION_MISMATCH"], tostring(fv), tostring(ns.FORMAT_VERSION))
   end
@@ -130,6 +135,7 @@ function ns.ParseExportString(raw)
       realm = meta.realm or "",
       region = meta.region or "",
       season = meta.season or "",
+      revision = tonumber(meta.rev) or 1,
       count = tonumber(meta.count) or #players,
     },
     players = players,
@@ -154,12 +160,33 @@ function ns.ApplyImport(payload, mode)
     else
       ns.db.players[key] = p
     end
-    if byRole[p.primaryRole] then byRole[p.primaryRole] = byRole[p.primaryRole] + 1 end
+    local board = ns.BoardRole and ns.BoardRole(p.primaryRole) or p.primaryRole
+    if byRole[board] then byRole[board] = byRole[board] + 1 end
     upserted = upserted + 1
   end
+  -- Re-apply local Main / Priority edits after sync/replace
+  for key, lane in pairs(ns.db.mainRoleOverrides or {}) do
+    local pl = ns.db.players[key]
+    if pl and (lane == "tank" or lane == "healer" or lane == "melee" or lane == "ranged") then
+      pl.primaryRole = lane
+    end
+  end
+  for key, prio in pairs(ns.db.priorityOverrides or {}) do
+    local pl = ns.db.players[key]
+    local n = tonumber(prio)
+    if pl and n and n >= 1 and n <= 5 then
+      pl.priority = n
+    end
+  end
+  -- Keep players added manually in-game (not present in sync file)
+  local restored = 0
+  if ns.RestoreManualPlayers then
+    restored = ns.RestoreManualPlayers() or 0
+  end
   if ns.Print then
-    ns.Print(string.format("Import %d → Tank %d · Healer %d · DPS %d",
-      upserted, byRole.tank, byRole.healer, byRole.dps))
+    ns.Print(string.format("Import %d → Tank %d · Healer %d · DPS %d%s",
+      upserted, byRole.tank, byRole.healer, byRole.dps,
+      restored > 0 and (" · manual +" .. restored) or ""))
   end
   return upserted
 end

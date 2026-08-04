@@ -1,7 +1,7 @@
 ## Interface: 120007
 ## Title: |cff66ccffGuild|r|cff88aaffPerformer|r
-## Notes: Import and review guild raid roster data from RaidRoster / Guild Performer web export.
-## Notes-itIT: Importa e consulta i dati del roster raid dalla pagina web Guild Performer.
+## Notes: Guild raid roster sync with RaidRoster — Companion pull/push, roster, guild tab, calendar events.
+## Notes-itIT: Sync roster raid di gilda con RaidRoster — Companion pull/push, roster, tab gilda, eventi calendario.
 ## Author: nucleo1988
 ## Version: @project-version@
 ## SavedVariables: GuildPerformerDB
@@ -18,13 +18,20 @@ Database.lua
 Import.lua
 SyncData.lua
 GuildPerformer_Data.lua
+Data\ClassRoles.lua
+Data\RaidBuffs.lua
 GroupBuilder.lua
 Roster.lua
+CalendarRoles.lua
+Calendar.lua
 Widgets.lua
 Core.lua
 Minimap.lua
 UI\MainWindow.lua
 UI\Dashboard.lua
 UI\RosterView.lua
+UI\GuildView.lua
+UI\EventsView.lua
+UI\CalendarDebugView.lua
 UI\ImportView.lua
 UI\Settings.lua

@@ -8,9 +8,20 @@ local defaults = {
     season = "",
     exportedAt = "",
     formatVersion = ns.FORMAT_VERSION,
+    revision = 1,
+    scope = "",
   },
   players = {},
+  guildMembers = {},
+  guildMeta = {
+    guild = "",
+    realm = "",
+    region = "",
+    exportedAt = "",
+    isOfficer = false,
+  },
   templates = {},
+  pushRequestJson = nil,
   settings = {
     scale = 1.0,
     theme = "azure",
@@ -19,12 +30,34 @@ local defaults = {
     showMinimap = true,
     pos = nil,
     minimap = { angle = 210, hide = false },
-    -- Informational: full export URL from RaidRoster (HTTP fetch is done by the syncer, not WoW).
+    -- Informational note for Companion setup (WoW cannot HTTP).
     syncUrl = "",
     autoApplySync = true,
+    clearLocalOnSync = true,
+    -- Stage companion push JSON after each roster edit (needs /reload for SV file).
+    autoPushPrep = true,
+    autoReloadForPush = false,
+    officerMaxRank = 2,
     lastSyncKey = "",
     lastSyncAt = "",
+    revision = 1,
+    calMonthRange = 0, -- current month only
+    calEventTypes = {
+      GUILD_EVENT = true,
+      PLAYER = true,
+      COMMUNITY_EVENT = true,
+      GUILD_ANNOUNCEMENT = false,
+    },
+    calStatusFilter = {
+      [0] = true, [1] = true, [2] = true, [3] = true,
+      [4] = true, [5] = true, [6] = true, [7] = false, [8] = true,
+    },
   },
+  calendarRoleOverrides = {},
+  mainRoleOverrides = {},
+  priorityOverrides = {},
+  manualPlayers = {},
+  deletedPlayers = {},
   backup = nil,
 }
 
@@ -44,6 +77,15 @@ function ns.EnsureDB()
     end
     if not GuildPerformerDB.settings.minimap then
       GuildPerformerDB.settings.minimap = CopyTable(defaults.settings.minimap)
+    end
+    if not GuildPerformerDB.calendarRoleOverrides then
+      GuildPerformerDB.calendarRoleOverrides = {}
+    end
+    if not GuildPerformerDB.settings.calEventTypes then
+      GuildPerformerDB.settings.calEventTypes = CopyTable(defaults.settings.calEventTypes)
+    end
+    if not GuildPerformerDB.settings.calStatusFilter then
+      GuildPerformerDB.settings.calStatusFilter = CopyTable(defaults.settings.calStatusFilter)
     end
     -- migrate legacy point
     if GuildPerformerDB.settings.point and not GuildPerformerDB.settings.pos then
@@ -71,11 +113,18 @@ function ns.GetPlayersList()
   return list
 end
 
+function ns.BoardRole(role)
+  role = string.lower(strtrim(tostring(role or "")))
+  if role == "tank" or role == "healer" then return role end
+  if role == "melee" or role == "ranged" or role == "dps" then return "dps" end
+  return "dps"
+end
+
 function ns.CountByRole()
   local c = { tank = 0, healer = 0, dps = 0 }
   for _, p in pairs(ns.db.players or {}) do
     if p.intends ~= false and p.status ~= "non_raider" then
-      local r = string.lower(strtrim(tostring(p.primaryRole or "")))
+      local r = ns.BoardRole(p.primaryRole)
       if c[r] then c[r] = c[r] + 1 end
     end
   end
@@ -83,9 +132,7 @@ function ns.CountByRole()
 end
 
 local function roleOf(p)
-  local r = string.lower(strtrim(tostring(p.primaryRole or "")))
-  if r == "tank" or r == "healer" or r == "dps" then return r end
-  return "dps"
+  return ns.BoardRole(p.primaryRole)
 end
 
 function ns.FilterPlayers(opts)

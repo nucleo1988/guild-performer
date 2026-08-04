@@ -13,5 +13,8 @@ syncer/app/dist/
 syncer/dist-installer/
 syncer/app/*.pyc
 syncer/app/__pycache__/
+tools/release/release.env
+tools/release/__pycache__/
+tools/release/*.pyc
 # Local roster dumps (never commit real guild data)
 addon/GuildPerformer_Data.local.lua

@@ -9,11 +9,13 @@ ignore:
   - web
   - scripts
   - syncer
+  - tools
   - docs
   - .github
   - CONTRIBUTING.md
   - README.md
   - LICENSE
+  - release.bat
   - "*.md"
   - .gitignore
   - .gitattributes

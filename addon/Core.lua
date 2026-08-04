@@ -27,6 +27,8 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1)
     end
     if ns.db.settings.autoApplySync ~= false and ns.TryApplySyncedData then
       ns.TryApplySyncedData(false)
+    elseif type(GuildPerformerDB_Guild) == "table" and ns.ApplyGuildImportTable then
+      ns.ApplyGuildImportTable(GuildPerformerDB_Guild)
     end
     Print((L["LOADED"] or "loaded.") .. " |cffffff00/gp|r")
   end
@@ -35,7 +37,8 @@ end)
 SLASH_GUILDPERFORMER1 = "/guildperformer"
 SLASH_GUILDPERFORMER2 = "/gp"
 SlashCmdList.GUILDPERFORMER = function(msg)
-  msg = string.lower(strtrim(msg or ""))
+  local raw = strtrim(msg or "")
+  msg = string.lower(raw)
   if msg == "reset" then
     ns.db.settings.pos = nil
     ns.db.settings.minimap = { angle = 210, hide = false }
@@ -65,16 +68,95 @@ SlashCmdList.GUILDPERFORMER = function(msg)
     end
     return
   end
+
+  if msg == "pushprep" or msg == "push" then
+    if not ns.PreparePushForCompanion then
+      Print("Push prep unavailable.")
+      return
+    end
+    local n, err = ns.PreparePushForCompanion()
+    if n then
+      Print(string.format(L["PUSH_PREP_OK"] or "Push pronto (%d PG). Companion: push, poi /reload.", n))
+    else
+      Print(err or (L["ROSTER_READONLY"] or "Officer/GM only."))
+    end
+    return
+  end
+
+  -- /gp add Nome [Classe] [tank|healer|melee|ranged]  (preserve name casing)
+  local addName, addRest = raw:match("^[Aa][Dd][Dd]%s+(%S+)%s*(.*)$")
+  if addName then
+    if not ns.CanEditRoster or not ns.CanEditRoster() then
+      Print(L["ROSTER_READONLY"] or "Solo GM/officer possono modificare il roster.")
+      return
+    end
+    local class, role = addRest:match("^(%S+)%s*(%S*)$")
+    local roleLow = role and string.lower(role) or ""
+    local classLow = class and string.lower(class) or ""
+    if classLow == "tank" or classLow == "healer" or classLow == "melee" or classLow == "ranged" or classLow == "dps" then
+      roleLow, class = classLow, nil
+    end
+    local p, err = ns.AddManualPlayer({
+      name = addName,
+      class = class or "",
+      primaryRole = (roleLow ~= "" and roleLow) or "ranged",
+    })
+    if p then
+      Print(string.format(L["ADD_OK"] or "Aggiunto %s (manuale).", p.name))
+      if ns.RefreshRosterView then ns.RefreshRosterView() end
+    else
+      Print(err or "?")
+    end
+    return
+  end
+
+  -- /gp remove Nome
+  local remName = raw:match("^[Rr][Ee][Mm][Oo][Vv][Ee]%s+(.+)$") or raw:match("^[Dd][Ee][Ll]%s+(.+)$")
+  if remName then
+    if not ns.CanEditRoster or not ns.CanEditRoster() then
+      Print(L["ROSTER_READONLY"] or "Solo GM/officer possono modificare il roster.")
+      return
+    end
+    if ns.RemoveManualPlayer(remName) then
+      Print(string.format(L["REMOVE_OK"] or "Rimosso %s.", remName))
+      if ns.RefreshRosterView then ns.RefreshRosterView() end
+    else
+      Print(L["REMOVE_FAIL"] or "PG non trovato.")
+    end
+    return
+  end
+
+  -- /gp rename Vecchio Nuovo
+  local oldN, newN = raw:match("^[Rr][Ee][Nn][Aa][Mm][Ee]%s+(%S+)%s+(%S+)$")
+  if oldN and newN then
+    if not ns.CanEditRoster or not ns.CanEditRoster() then
+      Print(L["ROSTER_READONLY"] or "Solo GM/officer possono modificare il roster.")
+      return
+    end
+    local ok, err = ns.RenamePlayer(oldN, newN)
+    if ok then
+      Print(string.format(L["RENAME_OK"] or "Rinominato %s → %s.", oldN, newN))
+      if ns.RefreshRosterView then ns.RefreshRosterView() end
+    else
+      Print(tostring(err or "fail"))
+    end
+    return
+  end
+
   if not ns.UI then
     Print("UI not ready.")
     return
   end
   local map = {
-    import = "import",
     roster = "roster",
     settings = "settings",
-    builder = "builder",
     dashboard = "dashboard",
+    events = "events",
+    event = "events",
+    calendario = "events",
+    caldebug = "caldebug",
+    debug = "caldebug",
+    cal = "caldebug",
   }
   local mod = map[msg]
   if mod then

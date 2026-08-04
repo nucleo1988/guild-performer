@@ -1,7 +1,7 @@
 local ADDON, ns = ...
 
-ns.FORMAT_VERSION = 1
-ns.ADDON_VERSION = "1.0.0"
+ns.FORMAT_VERSION = 2
+ns.ADDON_VERSION = "1.3.0"
 
 ns.CLASS_COLORS = {
   WARRIOR = { r = 0.78, g = 0.61, b = 0.43 },

@@ -56,7 +56,7 @@ function M:Init()
     if mouseButton == "RightButton" then
       ns.UI:EnsureCreated()
       ns.UI.frame:Show()
-      ns.UI:ShowModule("import")
+      ns.UI:ShowModule("settings")
     else
       ns.UI:Toggle()
     end
@@ -73,7 +73,7 @@ function M:Init()
     GameTooltip:AddLine(L["MINIMAP_DESC"] or "Guild raid roster from RaidRoster export.", 0.9, 0.9, 0.9)
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine("|cffffd100Left-click:|r " .. (L["OPEN"] or "open / close"))
-    GameTooltip:AddLine("|cffffd100Right-click:|r " .. (L["IMPORT"] or "Import"))
+    GameTooltip:AddLine("|cffffd100Right-click:|r " .. (L["SETTINGS"] or "Settings"))
     GameTooltip:AddLine("|cffffd100Drag:|r move")
     GameTooltip:Show()
   end)

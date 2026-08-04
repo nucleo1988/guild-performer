@@ -19,14 +19,22 @@ ok "Interface $IFACE"
 REQUIRED=(
   Core.lua Database.lua Import.lua SyncData.lua GuildPerformer_Data.lua ExportFormat.lua
   Theme.lua Widgets.lua Minimap.lua
-  Roster.lua GroupBuilder.lua
-  UI/MainWindow.lua UI/Dashboard.lua UI/RosterView.lua UI/ImportView.lua UI/Settings.lua
+  Roster.lua GroupBuilder.lua Calendar.lua CalendarRoles.lua
+  Data/ClassRoles.lua Data/RaidBuffs.lua
+  UI/MainWindow.lua UI/Dashboard.lua UI/RosterView.lua UI/GuildView.lua
+  UI/EventsView.lua UI/CalendarDebugView.lua UI/ImportView.lua UI/Settings.lua
   Locales/enUS.lua Locales/itIT.lua
 )
 for f in "${REQUIRED[@]}"; do
   [[ -f "$ADDON/$f" ]] || fail "Missing $f"
 done
 ok "Required Lua modules present"
+
+if grep -qE 'GuildPerformerDB_Import\s*=\s*\{' "$ADDON/GuildPerformer_Data.lua"; then
+  fail "GuildPerformer_Data.lua must ship as stub (Import = nil), not roster payload"
+else
+  ok "GuildPerformer_Data.lua stub"
+fi
 
 # Basic Lua syntax if luac available
 if command -v luac >/dev/null 2>&1; then

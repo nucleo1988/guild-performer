@@ -50,8 +50,7 @@ function ns.BuildSettingsView(parent)
   ui.defaultModule:SetOptions({
     { value = "dashboard", text = L["DASHBOARD"] },
     { value = "roster", text = L["ROSTER"] },
-    { value = "builder", text = L["BUILDER"] },
-    { value = "import", text = L["IMPORT"] },
+    { value = "events", text = L["EVENTS"] or "Eventi" },
     { value = "settings", text = L["SETTINGS"] },
   })
   ui.defaultModule.onSelect = function(v) pending.defaultModule = v end
@@ -69,11 +68,21 @@ function ns.BuildSettingsView(parent)
   ui.lock.onToggle = function(v) pending.lockWindow = v end
   y = y - 56
 
-  local rSync = row(parent, y, L["SYNC_URL"], L["SYNC_URL_DESC"])
-  rSync:SetHeight(56)
-  local syncPanel = W.panel(rSync, C.panel)
+  local rSync = row(parent, y, L["SYNC_COMPANION"], L["SYNC_COMPANION_DESC"])
+  rSync:SetHeight(72)
+  local syncHint = W.fs(rSync, "GameFontNormalSmall", L["SYNC_COMPANION_HINT"] or "", C.subtext)
+  syncHint:SetPoint("TOPLEFT", 200, -8)
+  syncHint:SetPoint("RIGHT", -12, 0)
+  syncHint:SetJustifyH("LEFT")
+  syncHint:SetWordWrap(true)
+  y = y - 80
+
+  -- Optional note field (not used for HTTP — companion holds the token)
+  local rNote = row(parent, y, L["SYNC_URL"], L["SYNC_URL_DESC"])
+  rNote:SetHeight(56)
+  local syncPanel = W.panel(rNote, C.panel)
   syncPanel:SetSize(280, 24)
-  syncPanel:SetPoint("RIGHT", rSync, "RIGHT", -12, -6)
+  syncPanel:SetPoint("RIGHT", rNote, "RIGHT", -12, -6)
   ui.syncUrl = W.editBox(syncPanel, false)
   ui.syncUrl:SetAllPoints()
   ui.syncUrl:SetScript("OnTextChanged", function(self)
@@ -96,6 +105,16 @@ function ns.BuildSettingsView(parent)
     end
   end)
   ui.applySync:SetPoint("TOPLEFT", 16, y)
+
+  ui.pushPrep = W.button(parent, L["PUSH_PREP"] or "Prepara push", 140, 28, false, function()
+    local n, err = ns.PreparePushForCompanion and ns.PreparePushForCompanion()
+    if n then
+      if ui.status then ui.status:SetText("|cff33d17a" .. string.format(L["PUSH_PREP_OK"] or "Push ready (%d).", n) .. "|r") end
+    else
+      if ui.status then ui.status:SetText("|cffffaa00" .. (err or "?") .. "|r") end
+    end
+  end)
+  ui.pushPrep:SetPoint("LEFT", ui.applySync, "RIGHT", 10, 0)
   y = y - 40
 
   ui.save = W.button(parent, L["SAVE"], 120, 30, true, function()

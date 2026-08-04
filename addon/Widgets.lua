@@ -68,6 +68,48 @@ function W.panel(parent, col)
   return p
 end
 
+-- Same approach as ElvUI Skins: centered ArrowUp.tga + SetRotation (radians).
+-- Source texture points UP by default. See ElvUI Game/Shared/Modules/Skins/Skins.lua
+W.ArrowRotation = { up = 0, down = 3.14, left = 1.57, right = -1.57 }
+W.ARROW_TEX = "Interface\\AddOns\\GuildPerformer\\Media\\ArrowUp"
+
+--- Shared combo/nav arrow. direction: "down" | "up" | "left" | "right"
+function W.ApplyArrow(tex, direction, size)
+  size = size or 14
+  tex:SetTexture(W.ARROW_TEX)
+  tex:SetTexCoord(0, 1, 0, 1)
+  tex:SetSize(size, size)
+  tex:SetRotation(W.ArrowRotation[direction or "down"] or 0)
+  local a = C.accent
+  tex:SetVertexColor(a[1], a[2], a[3], 1)
+  W._skins.tex[tex] = { col = C.accent, mode = "vertex" }
+  return tex
+end
+
+--- Square button with centered arrow (e.g. back to event list).
+function W.arrowButton(parent, direction, size, onClick)
+  size = size or 26
+  local b = CreateFrame("Button", nil, parent, "BackdropTemplate")
+  b:SetSize(size, size)
+  b:SetBackdrop(W.BACKDROP)
+  b:SetBackdropColor(0.13, 0.13, 0.17, 1)
+  b:SetBackdropBorderColor(C.border[1], C.border[2], C.border[3], 1)
+  local arrow = b:CreateTexture(nil, "OVERLAY")
+  W.ApplyArrow(arrow, direction, math.floor(size * 0.55))
+  arrow:SetPoint("CENTER", 0, 0)
+  b.arrow = arrow
+  b:SetScript("OnEnter", function(self)
+    self:SetBackdropBorderColor(C.accent2[1], C.accent2[2], C.accent2[3], 1)
+  end)
+  b:SetScript("OnLeave", function(self)
+    self:SetBackdropBorderColor(C.border[1], C.border[2], C.border[3], 1)
+  end)
+  if onClick then b:SetScript("OnClick", onClick) end
+  W._skins.bg[b] = true
+  b.__bgCol = { 0.13, 0.13, 0.17, 1 }
+  return b
+end
+
 function W.fs(parent, template, text, r, g, b)
   local f = parent:CreateFontString(nil, "OVERLAY", template or "GameFontNormal")
   f:SetText(text or "")
@@ -191,14 +233,13 @@ function W.scroll(parent)
 
   local function navBtn(down)
     local b = CreateFrame("Button", nil, sf, "BackdropTemplate")
-    b:SetSize(12, 12)
+    b:SetSize(14, 14)
     b:SetBackdrop(W.BACKDROP)
     b:SetBackdropColor(0.13, 0.13, 0.17, 1)
     b:SetBackdropBorderColor(C.border[1], C.border[2], C.border[3], 1)
     local a = b:CreateTexture(nil, "OVERLAY")
-    a:SetTexture(down and "Interface\\Buttons\\Arrow-Down-Up" or "Interface\\Buttons\\Arrow-Up-Up")
-    a:SetSize(12, 12)
-    a:SetPoint("CENTER", 0, down and -1 or 1)
+    W.ApplyArrow(a, down and "down" or "up", 10)
+    a:SetPoint("CENTER", 0, 0)
     b:SetScript("OnClick", function()
       local mn, mx = slider:GetMinMaxValues()
       slider:SetValue(math.max(mn, math.min(mx, slider:GetValue() + (down and 40 or -40))))
@@ -254,11 +295,12 @@ function W.dropdown(parent, width, height)
   text:SetWordWrap(false)
   dd.text = text
 
-  local arrow = dd:CreateTexture(nil, "OVERLAY")
-  arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Up")
-  arrow:SetSize(16, 16)
-  arrow:SetPoint("RIGHT", -4, 0)
-  arrow:SetVertexColor(0.8, 0.8, 0.85)
+  local arrow = dd:CreateTexture(nil, "ARTWORK")
+  W.ApplyArrow(arrow, "down", 14)
+  -- ElvUI-style: RIGHT of the combo, optically centered texture
+  arrow:ClearAllPoints()
+  arrow:SetPoint("RIGHT", dd, "RIGHT", -4, 0)
+  dd.arrow = arrow
 
   dd:SetScript("OnEnter", function(self)
     self:SetBackdropBorderColor(C.accent2[1], C.accent2[2], C.accent2[3], 1)
@@ -290,11 +332,21 @@ function W.dropdown(parent, width, height)
     fsObj:SetPoint("RIGHT", -22, 0)
   end
 
+  local function applyOptColor(fs, opt)
+    if opt and opt.color then
+      fs:SetTextColor(opt.color[1], opt.color[2], opt.color[3], 1)
+    else
+      fs:SetTextColor(1, 1, 1, 1)
+    end
+  end
+
   function dd:SetValue(v)
     self.value = v
+    local vn = tonumber(v)
     for _, opt in ipairs(self.options) do
-      if opt.value == v then
+      if opt.value == v or (vn ~= nil and tonumber(opt.value) == vn) then
         self.text:SetText(opt.text)
+        applyOptColor(self.text, opt)
         if opt.swatch then
           self.swatch:Show()
           self.swatch:SetColorTexture(opt.swatch[1], opt.swatch[2], opt.swatch[3])
@@ -306,9 +358,29 @@ function W.dropdown(parent, width, height)
         return
       end
     end
-    self.text:SetText(tostring(v))
+    -- Fallback: prefer a resolved label over a raw number (e.g. calendar invite status)
+    local label
+    if self.valueLabel then
+      label = self.valueLabel(v)
+    elseif ns.CalendarStatusLabel then
+      label = ns.CalendarStatusLabel(v)
+    end
+    self.text:SetText(label or tostring(v))
+    self.text:SetTextColor(1, 1, 1, 1)
   end
   function dd:GetValue() return self.value end
+
+  function dd:SetEnabled(enabled)
+    self._disabled = not enabled
+    if enabled then
+      self:Enable()
+      self:SetAlpha(1)
+    else
+      self:Disable()
+      self:SetAlpha(0.45)
+      if self.menu then self.menu:Hide() end
+    end
+  end
 
   function dd:SetOptions(options)
     self.options = options or {}
@@ -351,6 +423,7 @@ function W.dropdown(parent, width, height)
         row.text:SetPoint("RIGHT", -8, 0)
       end
       row.text:SetText(opt.text)
+      applyOptColor(row.text, opt)
       row.value = opt.value
       row:SetScript("OnClick", function(s)
         menu:Hide()
@@ -363,7 +436,8 @@ function W.dropdown(parent, width, height)
     menu:SetHeight(#self.options * 22 + 6)
   end
 
-  dd:SetScript("OnClick", function()
+  dd:SetScript("OnClick", function(self)
+    if self._disabled then return end
     if menu:IsShown() then menu:Hide() else menu:Show(); menu:Raise() end
   end)
   return dd
@@ -444,4 +518,94 @@ function W.editBox(parent, multi)
     box:SetMaxLetters(0)
   end
   return box
+end
+
+--- Multiline edit inside a scroll frame (notes / paste areas).
+function W.scrollEdit(parent, width, height)
+  local wrap = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+  W.setBG(wrap, { 0.06, 0.06, 0.08, 1 })
+  wrap:SetSize(width, height)
+
+  local sf = CreateFrame("ScrollFrame", nil, wrap)
+  sf:SetPoint("TOPLEFT", 4, -4)
+  sf:SetPoint("BOTTOMRIGHT", -16, 4)
+
+  local edit = CreateFrame("EditBox", nil, sf)
+  edit:SetMultiLine(true)
+  edit:SetFontObject(ChatFontNormal)
+  edit:SetWidth(math.max(40, width - 28))
+  edit:SetAutoFocus(false)
+  edit:SetTextInsets(4, 4, 2, 2)
+  edit:SetMaxLetters(0)
+  edit:SetScript("OnEscapePressed", edit.ClearFocus)
+  sf:SetScrollChild(edit)
+
+  local slider = CreateFrame("Slider", nil, wrap)
+  slider:SetOrientation("VERTICAL")
+  slider:SetPoint("TOPRIGHT", -2, -4)
+  slider:SetPoint("BOTTOMRIGHT", -2, 4)
+  slider:SetWidth(10)
+  slider:SetMinMaxValues(0, 0)
+  slider:SetValue(0)
+  slider:SetValueStep(1)
+  slider:SetObeyStepOnDrag(true)
+  local thumb = slider:CreateTexture(nil, "OVERLAY")
+  thumb:SetColorTexture(C.accent[1], C.accent[2], C.accent[3], 0.9)
+  thumb:SetSize(8, 24)
+  slider:SetThumbTexture(thumb)
+
+  local function refresh()
+    local ch = edit:GetHeight() or 0
+    local vh = sf:GetHeight() or 1
+    local range = math.max(0, ch - vh)
+    slider:SetMinMaxValues(0, range)
+    local v = math.min(slider:GetValue(), range)
+    slider:SetValue(v)
+    slider:SetShown(range > 1)
+  end
+
+  slider:SetScript("OnValueChanged", function(_, v)
+    sf:SetVerticalScroll(v)
+  end)
+  sf:SetScript("OnMouseWheel", function(_, delta)
+    local mn, mx = slider:GetMinMaxValues()
+    slider:SetValue(math.max(mn, math.min(mx, slider:GetValue() - delta * 24)))
+  end)
+  edit:SetScript("OnCursorChanged", function()
+    -- Grow scroll child with content
+    local fontHeight = 14
+    local lineCount = select(2, edit:GetText():gsub("\n", "\n")) + 1
+    local h = math.max(sf:GetHeight() or height, lineCount * fontHeight + 12)
+    edit:SetHeight(h)
+    refresh()
+  end)
+  edit:SetScript("OnTextChanged", function()
+    local fontHeight = 14
+    local text = edit:GetText() or ""
+    local lineCount = select(2, text:gsub("\n", "\n")) + 1
+    -- Approximate wrap: ~chars per line
+    local cpl = math.max(20, math.floor((edit:GetWidth() or 200) / 7))
+    local wrapped = 0
+    for line in (text .. "\n"):gmatch("(.-)\n") do
+      wrapped = wrapped + math.max(1, math.ceil(math.max(1, #line) / cpl))
+    end
+    local h = math.max(sf:GetHeight() or height, math.max(lineCount, wrapped) * fontHeight + 12)
+    edit:SetHeight(h)
+    refresh()
+  end)
+  wrap:HookScript("OnSizeChanged", function()
+    edit:SetWidth(math.max(40, wrap:GetWidth() - 28))
+    refresh()
+  end)
+
+  wrap.edit = edit
+  wrap.scroll = sf
+  function wrap:GetText() return edit:GetText() end
+  function wrap:SetText(t)
+    edit:SetText(t or "")
+    edit:SetCursorPosition(0)
+    if edit:GetScript("OnTextChanged") then edit:GetScript("OnTextChanged")(edit) end
+  end
+  function wrap:SetFocus() edit:SetFocus() end
+  return wrap, edit
 end

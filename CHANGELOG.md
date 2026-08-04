@@ -4,6 +4,21 @@ All notable changes to Guild Performer will be documented in this file.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-04
+
+### Added
+
+- **RaidRoster Companion** sync (pull/push) via `GuildPerformer_Data.lua` staging file.
+- **Guild** tab: ilvl / roles / Raider.IO enrichment display.
+- **Events** calendar view and calendar role helpers.
+- `/gp pushprep` flow for members (own characters) and officers (full roster).
+- Class Performer–style CurseForge release tooling (`tools/release`, `release.bat`) for project **1635122**.
+
+### Changed
+
+- Notes/TOC updated for Companion + RaidRoster workflow.
+- Packaging keeps roster data stub-only (never ships live guild dumps).
+
 ## [1.1.1] - 2026-08-01
 
 ### Added
